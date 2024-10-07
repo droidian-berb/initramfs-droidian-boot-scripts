@@ -1,0 +1,31 @@
+luks_cust_device() {
+        # Check if a luks device is specified in the cmdline
+        # Only a physical device or physical partition is supported
+        plymouth message --text="1- Starting luks custom dev detection"
+        sleep 2
+        if grep -q luks.cust.dev /proc/cmdline; then
+                plymouth message --text="2- Detected luks.cust.dev option in cmdline"
+                sleep 2
+                for x in $(cat /proc/cmdline); do
+                        if [ "$(echo ${x} | grep -c luks.cust.dev)" -eq "1" ]; then
+                                plymouth message --text="3- Detected boot arg \"${x}\""
+                                sleep 4
+		                luks_cust_device="$(echo ${x} | awk -F'=' '{print $2}')"
+
+                                plymouth message --text="4- Var luks_cust_device = ${luks_cust_device}"
+                                sleep 3
+                                break
+                        fi
+                done
+        else
+                plymouth message --text="NOT Detected luks.cust.dev arg in cmdline"
+                sleep 2
+        fi
+        if [ -e "${luks_cust_device}" ]; then
+                plymouth message --text="5- Device luks cust in cmdline EXIST"
+        else
+                plymouth message --text="5- Device luks cust in cmdline NOT exist"
+        fi
+        sleep 3
+        #plymouth message --text=""
+}

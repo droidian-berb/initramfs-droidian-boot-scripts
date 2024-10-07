@@ -730,6 +730,12 @@ mountroot() {
 
 	mount_vendor_partitions "$ab_slot_suffix"
 
+        # Check for a custom luks device specified in the cmdline
+        if [ -e "/scripts/halium-yk" ]; then
+                source /scripts/halium-yk
+                luks_cust_device
+        fi
+
 	# Check if we should prefer LVM mounts. If that's the case, try
 	# mounting the droidian-rootfs LV first, then fallback to the standard
 	# halium way (where we assume that userdata is a mountable partition)
