@@ -21,11 +21,11 @@ luks_cust_device() {
                 plymouth message --text="NOT Detected luks.cust.dev arg in cmdline"
                 sleep 2
         fi
-        if [ -e "${luks_cust_device}" ]; then
-                plymouth message --text="5- Device luks cust in cmdline EXIST"
-        else
-                plymouth message --text="5- Device luks cust in cmdline NOT exist"
-        fi
+        [ -e "${luks_cust_device}" ] || return
+        plymouth message --text="5- Device luks cust in cmdline EXIST"
+        sleep 3
+	[ "$(blkid ${luks_cust_device} -o value -s TYPE)" == "crypto_LUKS" ] || return
+        plymouth message --text="6- Device is luks"
         sleep 3
         #plymouth message --text=""
 }
