@@ -60,5 +60,10 @@ luks_cust_device() {
         _passphrase=""
         # Disable touchscreen
 	halium_hook teardown_touchscreen
-        #plymouth message --text=""
+
+        # Check for lvm in luks volume
+        ##cust_vg_name="$(pvscan | grep "${luks_dev_name}_crypt" | awk '{print $4}')"
+        ##if [ -n "${cust_vg_name}" ]; then
+        ##        plymouth message --text="Found ${cust_vg_name} vg"
+        ##fi
 }
