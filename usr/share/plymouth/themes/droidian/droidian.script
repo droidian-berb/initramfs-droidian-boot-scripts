@@ -22,7 +22,7 @@ spinner_max_opacity     = 0.3;
 
 message_h_alignment     = 0.5;
 message_v_alignment     = 0.9;
-message_font_size       = 18; # In pixels
+message_font_size       = 45; # In pixels
 
 
 
