@@ -8,6 +8,7 @@ luks_cust_device() {
                         if [ "$(echo ${x} | grep -c luks.cust.dev)" -eq "1" ]; then
                                 #plymouth message --text="Detected boot arg \"${x}\"" && sleep 1
 		                luks_cust_device="$(echo ${x} | awk -F'=' '{print $2}')"
+                                luks_dev_name="$(basename ${luks_cust_device})"
                                 #plymouth message --text=" luks_cust_device = ${luks_cust_device}" && sleep 1
                                 break
                         fi
@@ -34,13 +35,30 @@ luks_cust_device() {
                 t_remain=$((t_remain - 1))
                 sleep 1
         done
-        # If no yk inserted, leave from function
+        # If no yk inserted, continue normal boot
         if [ "${yk_present}" -ne "1" ]; then
-                plymouth message --text="Resuming normal boot..." && sleep 2
+                #plymouth message --text="Resuming normal boot..." && sleep 2
                 return 0
         else
-                plymouth message --text="A yubikey is present" && sleep 2
+                plymouth message --text="Yubikey inserted" && sleep 2
         fi
-
+        # Quit plymouth
+	[ -e "/usr/bin/plymouth" ] && plymouth quit || true
+        # Enable touchscreen
+	halium_hook setup_touchscreen
+        # Load ykluks config
+        . /etc/ykluks.cfg
+        # Ask password and get challenge
+        PW="$(unl0kr)"
+        R="$(printf %s "${PW}" | ykchalresp -2 -i- 2>/dev/null || true)"
+	_passphrase=$(printf '%s' "$R")
+        # Unlock device
+	printf %s "${_passphrase}" | cryptsetup luksOpen "${luks_cust_device}" "${luks_dev_name}_crypt" 2>&1;
+        # Clean password vars
+        PW=""
+        R=""
+        _passphrase=""
+        # Disable touchscreen
+	halium_hook teardown_touchscreen
         #plymouth message --text=""
 }
