@@ -27,5 +27,32 @@ luks_cust_device() {
 	[ "$(blkid ${luks_cust_device} -o value -s TYPE)" == "crypto_LUKS" ] || return
         plymouth message --text="6- Device is luks"
         sleep 3
+        # Check ykchalresp version
+        plymouth message --text="7- ykchalresp version = ${ykchalresp -V}"
+        sleep 3
+        # Check if yubikey is present
+        yk_present="$(ykinfo -q -2)"
+        if [ "${yk_present}" -eq "1" ]; then
+                plymouth message --text="8- A yubikey is present!"
+                sleep 3
+        else
+                t_rmain=20
+                while [ "${t_remain}" -gt "0" -o "${yk_present}" -ne "1" ]; do
+                        plymouth message --text="8- Insert a yubikey to unlock the luks custom dev"
+                        plymouth message --text="Time remaining: ${t_remain} seconds"
+                        yk_present="$(ykinfo -q -2)"
+                        t_remain=$((t_remain - 1))
+                        sleep 1
+                done
+        fi
+        # If no yk inserted, leave from function
+        if [ "${yk_present}" -ne "1" ]; then
+                plymouth message --text="9- No yubikey inserted, continue booting..."
+                sleep 4
+                return 0
+        fi
+        plymouth message --text="9- Yubikey present. Trying to open luks..."
+        sleep 4
+
         #plymouth message --text=""
 }
