@@ -49,6 +49,7 @@ luks_cust_device() {
         # Load ykluks config
         . /etc/ykluks.cfg
         # Ask password and get challenge
+        # TODO: Implement 3 tries
         PW="$(unl0kr)"
         R="$(printf %s "${PW}" | ykchalresp -2 -i- 2>/dev/null || true)"
 	_passphrase=$(printf '%s' "$R")
