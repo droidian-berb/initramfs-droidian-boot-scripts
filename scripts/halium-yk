@@ -2,18 +2,18 @@ luks_cust_device() {
         # Check if a luks device is specified in the cmdline
         # Only a physical device or physical partition is supported
         plymouth message --text="1- Starting luks custom dev detection"
-        sleep 2
+        sleep 1
         if grep -q luks.cust.dev /proc/cmdline; then
                 plymouth message --text="2- Detected luks.cust.dev option in cmdline"
-                sleep 2
+                sleep 1
                 for x in $(cat /proc/cmdline); do
                         if [ "$(echo ${x} | grep -c luks.cust.dev)" -eq "1" ]; then
                                 plymouth message --text="3- Detected boot arg \"${x}\""
-                                sleep 4
+                                sleep 1
 		                luks_cust_device="$(echo ${x} | awk -F'=' '{print $2}')"
 
                                 plymouth message --text="4- Var luks_cust_device = ${luks_cust_device}"
-                                sleep 3
+                                sleep 1
                                 break
                         fi
                 done
@@ -23,12 +23,14 @@ luks_cust_device() {
         fi
         [ -e "${luks_cust_device}" ] || return
         plymouth message --text="5- Device luks cust in cmdline EXIST"
-        sleep 3
+        sleep 1
 	[ "$(blkid ${luks_cust_device} -o value -s TYPE)" == "crypto_LUKS" ] || return
         plymouth message --text="6- Device is luks"
         sleep 3
         # Check ykchalresp version
-        plymouth message --text="7- ykchalresp version = ${ykchalresp -V}"
+
+        result="$(ykchalresp -V 2>&1)"
+        plymouth message --text="7- ykchalresp version = ${result}"
         sleep 3
         # Check if yubikey is present
         yk_present="$(ykinfo -q -2)"
