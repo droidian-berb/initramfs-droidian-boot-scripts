@@ -1,61 +1,46 @@
 luks_cust_device() {
         # Check if a luks device is specified in the cmdline
         # Only a physical device or physical partition is supported
-        plymouth message --text="1- Starting luks custom dev detection"
-        sleep 1
+        #plymouth message --text="Starting luks custom dev detection" && sleep 1
         if grep -q luks.cust.dev /proc/cmdline; then
-                plymouth message --text="2- Detected luks.cust.dev option in cmdline"
-                sleep 1
+                #plymouth message --text="Detected luks.cust.dev option in cmdline" && sleep 2
                 for x in $(cat /proc/cmdline); do
                         if [ "$(echo ${x} | grep -c luks.cust.dev)" -eq "1" ]; then
-                                plymouth message --text="3- Detected boot arg \"${x}\""
-                                sleep 1
+                                #plymouth message --text="Detected boot arg \"${x}\"" && sleep 1
 		                luks_cust_device="$(echo ${x} | awk -F'=' '{print $2}')"
-
-                                plymouth message --text="4- Var luks_cust_device = ${luks_cust_device}"
-                                sleep 1
+                                #plymouth message --text=" luks_cust_device = ${luks_cust_device}" && sleep 1
                                 break
                         fi
                 done
-        else
-                plymouth message --text="NOT Detected luks.cust.dev arg in cmdline"
-                sleep 2
+        #else
+                #plymouth message --text="NOT Detected luks.cust.dev arg in cmdline" && sleep 2
         fi
+        # If the supplied device not exist, continue normal boot
         [ -e "${luks_cust_device}" ] || return
-        plymouth message --text="5- Device luks cust in cmdline EXIST"
-        sleep 1
+        #plymouth message --text="Device luks cust in cmdline EXIST" && sleep 1
+        # If the supplied device is not luks, continue normal boot
 	[ "$(blkid ${luks_cust_device} -o value -s TYPE)" == "crypto_LUKS" ] || return
-        plymouth message --text="6- Device is luks"
-        sleep 3
+        #plymouth message --text="6- Device is luks" && sleep 3
         # Check ykchalresp version
-
-        result="$(ykchalresp -V 2>&1)"
-        plymouth message --text="7- ykchalresp version = ${result}"
-        sleep 3
-        yk_present="0"
+        #result="$(ykchalresp -V 2>&1)"
+        #plymouth message --text="7- ykchalresp version = ${result}" && sleep 3
         # Check if yubikey is present
+        yk_present="0"
+        t_remain=20
         [ "$(ykinfo -q -2)" ] && yk_present="1"
-        if [ "${yk_present}" -eq "1" ]; then
-                plymouth message --text="8- A yubikey is present!"
-                sleep 3
-        else
-                t_remain=20
-                while [ "${t_remain}" -gt "0" ] && [ "${yk_present}" -ne "1" ]; do
-                        plymouth message --text="8- Insert a yubikey to unlock the luks custom dev"
-                        plymouth message --text="Time remaining: ${t_remain} seconds"
-                        [ "$(ykinfo -q -2)" ] && yk_present="1"
-                        t_remain=$((t_remain - 1))
-                        sleep 1
-                done
-        fi
+        while [ "${t_remain}" -gt "0" ] && [ "${yk_present}" -ne "1" ]; do
+                plymouth message --text="Insert a yubikey or wait to boot in ${t_remain} seconds"
+                [ "$(ykinfo -q -2)" ] && yk_present="1"
+                t_remain=$((t_remain - 1))
+                sleep 1
+        done
         # If no yk inserted, leave from function
         if [ "${yk_present}" -ne "1" ]; then
-                plymouth message --text="9- No yubikey inserted, continue booting..."
-                sleep 4
+                plymouth message --text="Resuming normal boot..." && sleep 2
                 return 0
+        else
+                plymouth message --text="A yubikey is present" && sleep 2
         fi
-        plymouth message --text="10- Yubikey present. Trying to open luks..."
-        sleep 4
 
         #plymouth message --text=""
 }
