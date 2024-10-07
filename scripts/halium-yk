@@ -32,17 +32,18 @@ luks_cust_device() {
         result="$(ykchalresp -V 2>&1)"
         plymouth message --text="7- ykchalresp version = ${result}"
         sleep 3
+        yk_present="0"
         # Check if yubikey is present
-        yk_present="$(ykinfo -q -2)"
+        [ "$(ykinfo -q -2)" ] && yk_present="1"
         if [ "${yk_present}" -eq "1" ]; then
                 plymouth message --text="8- A yubikey is present!"
                 sleep 3
         else
-                t_rmain=20
-                while [ "${t_remain}" -gt "0" -o "${yk_present}" -ne "1" ]; do
+                t_remain=20
+                while [ "${t_remain}" -gt "0" ] && [ "${yk_present}" -ne "1" ]; do
                         plymouth message --text="8- Insert a yubikey to unlock the luks custom dev"
                         plymouth message --text="Time remaining: ${t_remain} seconds"
-                        yk_present="$(ykinfo -q -2)"
+                        [ "$(ykinfo -q -2)" ] && yk_present="1"
                         t_remain=$((t_remain - 1))
                         sleep 1
                 done
@@ -53,7 +54,7 @@ luks_cust_device() {
                 sleep 4
                 return 0
         fi
-        plymouth message --text="9- Yubikey present. Trying to open luks..."
+        plymouth message --text="10- Yubikey present. Trying to open luks..."
         sleep 4
 
         #plymouth message --text=""
