@@ -739,6 +739,7 @@ mountroot() {
 	# Check if we should prefer LVM mounts. If that's the case, try
 	# mounting the droidian-rootfs LV first, then fallback to the standard
 	# halium way (where we assume that userdata is a mountable partition)
+        plymouth message --text="Starting lvm search..." && sleep 4
 	use_lvm="yes"
 	resize_lvm="yes"
 	if grep -q droidian.lvm /proc/cmdline; then
@@ -774,7 +775,9 @@ mountroot() {
 
 	if [ "${use_lvm}" == "yes" ]; then
 		for try in 1 2 3 4 5; do
+                        plymouth message --text="Before vgscan --mknodes" && sleep 4
 			lvm vgscan --mknodes
+                        plymouth message --text="After vgscan --mknodes" && sleep 4
 			for vg in ${search_vg}; do
 				if lvm vgchange -ay ${vg} && [ -e "/dev/${vg}/${root_lv}" ]; then
 					tell_kmsg "Found LVM VG ${vg}"
@@ -786,6 +789,7 @@ mountroot() {
 			[ -n "${_syspart}" ] && break
 			sleep 2
 		done
+                plymouth message --text="Finished lvm scan..." && sleep 4
 		
 		# If _syspart is empty, LVM discovery failed. Let's continue
 		# normally
