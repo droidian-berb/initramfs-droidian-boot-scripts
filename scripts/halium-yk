@@ -34,6 +34,7 @@ luks_cust_device() {
                 [ "$(ykinfo -q -2)" ] && yk_present="1"
                 t_remain=$((t_remain - 1))
                 sleep 1
+                [ "${t_remain}" -eq "0" ] && break
         done
         # If no yk inserted, continue normal boot
         if [ "${yk_present}" -ne "1" ]; then
